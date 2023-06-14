@@ -9,6 +9,7 @@
 #include <set>
 #include <unordered_set>
 #include <queue>
+#include <algorithm>
 #include <algocpp/all.hpp>
 using namespace std;
 
@@ -24,13 +25,17 @@ void split(string s, vector<double> &num, vector<char> &op)
 			sum += s[i];
 		else
 		{
-			num.push_back(stod(sum));
-			op.push_back(s[i]);
-			sum = "";
+			if (s[i] != '(' && s[i] != ')' && sum != "")
+			{
+				num.push_back(stod(sum));
+				op.push_back(s[i]);
+				sum = "";
+			}
 		}
 	}
 
-	num.push_back(stod(sum));
+	if (sum != "")
+		num.push_back(stod(sum));
 }
 
 double calc(string s, bool out = false)
@@ -70,9 +75,14 @@ double calc(string s, bool out = false)
 	vector<char> op;
 	split(s, num, op);
 
-	if (num.size() != op.size() + 1 || op.size() == 0)
+	if (num.size() != op.size() + 1)
 	{
 		throw invalid_argument("operror");
+	}
+
+	if (num.size() == 1 && op.size() == 0)
+	{
+		return num[0];
 	}
 
 	string check1 = s;
@@ -80,7 +90,7 @@ double calc(string s, bool out = false)
 
 	do
 	{
-		split(s, num, op);
+		split(check, num, op);
 		queue<char> ope;
 		queue<double> nm;
 		for (int i = 0; i < op.size(); i++)
@@ -93,11 +103,11 @@ double calc(string s, bool out = false)
 			nm.push(num[i]);
 		}
 
-		check = s;
 		tmp = "";
+		bool flag = true;
 		while (!nm.empty())
 		{
-			if (ope.front() == '*')
+			if (ope.front() == '*' && flag)
 			{
 				double a = nm.front();
 				nm.pop();
@@ -107,8 +117,9 @@ double calc(string s, bool out = false)
 				{
 					tmp += ope.front();
 				}
+				flag = false;
 			}
-			else if (ope.front() == '/')
+			else if (ope.front() == '/' && flag)
 			{
 				double a = nm.front();
 				nm.pop();
@@ -118,6 +129,7 @@ double calc(string s, bool out = false)
 				{
 					tmp += ope.front();
 				}
+				flag = false;
 			}
 			else
 			{
@@ -136,7 +148,7 @@ double calc(string s, bool out = false)
 		}
 
 		check = tmp;
-	} while (check != tmp);
+	} while (count(check.begin(), check.end(), '*') || count(check.begin(), check.end(), '/'));
 
 	s = check;
 
@@ -181,6 +193,7 @@ double calc(string s, bool out = false)
 	return now;
 }
 
+// #ifndef TEST_DEBUG
 int main()
 {
 	cout << "\n"
@@ -199,10 +212,14 @@ int main()
 		system("cls");
 
 		vector<int> number(5);
+		unordered_set<int> ok;
+		unordered_multiset<int> use;
 		int ans = -1;
 		for (int i = 0; i < 5; i++)
 		{
 			number[i] = rand() % 6 + 1;
+			ok.insert(number[i]);
+			use.insert(number[i]);
 		}
 		sort(number.begin(), number.end());
 
@@ -214,13 +231,56 @@ int main()
 
 		while (true)
 		{
-			cout << ">>> ";
+			cout << "\n>>> ";
 			getline(cin, inp);
 			inp = algocpp::string::replace(inp, " ", "");
 
+			if (inp == "next")
+				break;
+
+			auto check = use;
+
+			vector<double> num;
+			vector<char> op;
+			split(inp, num, op);
+
+			bool flag = false;
+			for (int i = 0; i < num.size(); i++)
+			{
+				if (!ok.count(num[i]))
+				{
+					cout << "UN(Unauthorised Numbers)" << endl
+						 << endl;
+					flag = true;
+					break;
+				}
+
+				if (check.count(num[i]))
+					check.erase(check.find(num[i]));
+			}
+
+			if (!flag && check.size() != 0)
+			{
+				cout << "NUN(Not Use Numbers)" << endl
+					 << endl;
+				flag = true;
+			}
+
+			if (flag)
+				continue;
+
 			try
 			{
-				calc(inp, true);
+				if (ans == calc(inp, true))
+				{
+					cout << "AC(Accept)" << endl
+						 << endl;
+				}
+				else
+				{
+					cout << "WA(Wrong Answer)" << endl
+						 << endl;
+				}
 			}
 			catch (const std::exception &e)
 			{
@@ -232,3 +292,4 @@ int main()
 
 	return 0;
 }
+// #endif
