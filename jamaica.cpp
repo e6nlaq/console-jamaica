@@ -10,7 +10,6 @@
 #include <unordered_set>
 #include <queue>
 #include <algorithm>
-#include <algocpp/all.hpp>
 using namespace std;
 
 void split(string s, vector<double> &num, vector<char> &op)
@@ -233,7 +232,6 @@ int main()
 		{
 			cout << "\n>>> ";
 			getline(cin, inp);
-			inp = algocpp::string::replace(inp, " ", "");
 
 			if (inp == "next")
 				break;
